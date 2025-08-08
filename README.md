@@ -97,6 +97,6 @@ https://bscscan.com/tx/0xb46d289c48d04dc6cc74849ecd9ef4fff6bf86aa3b16fc231d019b8
 - Randomizing the pool
 
 ## How to contact
-Telegram: [@midaBricoll](https://t.me/midaBricoll)
+Telegram: [@midaBricoll](https://t.me/)
 
-Twitter: [@dieharye](https://x.com/dieharye)
+Twitter: [@dieharye](https://x.com/Pup5ol)
