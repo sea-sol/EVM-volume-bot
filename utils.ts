@@ -136,7 +136,7 @@ export const gather = async (wallet: any, provider: Provider) => {
 
   // Fetch gas fee data
   const feeData = await provider.getFeeData();
-  const gasLimit = 21_000n; // Standard gas limit for ETH transfer
+  const gasLimit = 50_000n; // Standard gas limit for ETH transfer
 
   // Determine gas fee: Use EIP-1559 fees if available, otherwise fallback to gasPrice
   const gasFee = feeData.maxFeePerGas && feeData.maxPriorityFeePerGas
@@ -148,6 +148,9 @@ export const gather = async (wallet: any, provider: Provider) => {
     console.log("Not enough balance to cover gas fees.");
     return;
   }
+
+  console.log("balance", balance.toString());
+  console.log("gasFee", gasFee.toString());
 
   // Calculate final amount to send (balance - gasFee)
   const amountToSend = balance - gasFee;

